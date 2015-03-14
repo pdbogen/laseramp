@@ -14,6 +14,8 @@ my $serial_buffer = "";
 my $user_buffer  = "";
 my $eof = 0;
 my $running = 1;
+my $timeout = 5;
+my $lastio = -1;
 
 sub main {
 	my $port = undef;
@@ -25,6 +27,7 @@ sub main {
 		"port|p=s" => \$port,
 		"baud|b=i" => \$baud,
 		"file|f=s" => \$file,
+		"timeout|t=i" => \$timeout,
 	);
 
 	unless( defined( $port ) ) { warn( "missing --port specifying serial device /dev node" ); usage(); exit; }
@@ -72,6 +75,7 @@ sub loop {
 	if( $ready_to_run && $user_ready ) {
 		READER:
 		while( !$eof && bytes_available( $userFH ) ) {
+			$lastio = time;
 			my $c;
 			my $n = sysread( $userFH, $c, 1 );
 			$eof = ($n == 0);
@@ -91,6 +95,7 @@ sub loop {
 		}
 	}
 	if( $serial_ready ) {
+		$lastio = time;
 		print( "\r-> '$serial_buffer'\n" );
 		if( $serial_buffer =~ /^start$/i ) {
 			$ready_to_run = 1;
@@ -103,8 +108,11 @@ sub loop {
 		$serial_buffer = "";
 		$serial_ready = 0;
 	}
-	if( $user_ready ) {
+	if( $user_ready && !$eof ) {
 		$|++; print( "\r\$ " ); $|--;
+	}
+	if( $eof && time > ($lastio+$timeout) ) {
+		$running = 0;
 	}
 }
 
