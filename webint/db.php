@@ -3,7 +3,7 @@
 	$mysql->query( "CREATE DATABASE IF NOT EXISTS laseramp" );
 	$mysql->select_db( "laseramp" );
 	$mysql->query( "CREATE TABLE IF NOT EXISTS state ( `key` VARCHAR(128) UNIQUE PRIMARY KEY, value TEXT )" );
-	function state( $key, $value=NULL ) {
+	function state( $key, $value=NULL, $default=NULL ) {
 		global $mysql;
 		if( $value === NULL ) {
 			$query = $mysql->prepare( "SELECT value FROM state WHERE `key`=?" );
@@ -22,7 +22,11 @@
 				return NULL;
 			}
 			$query->close();
-			return $value;
+			if( $value === NULL ) {
+				return $default;
+			} else {
+				return $value;
+			}
 		} else {
 			$query = $mysql->prepare( "INSERT INTO state (`key`,value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=?" );
 			if( $query === FALSE ) {

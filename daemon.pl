@@ -40,8 +40,9 @@ sub main {
 			$dbh = DBI->connect( "DBI:mysql:host=$db_host", $db_user, $db_pass );
 			$dbh->do( "CREATE DATABASE IF NOT EXISTS $db_db" );
 			$dbh->do( "USE $db_db" );
-			state( "daemon_state", "running" );
+			state( "daemon_state", "waiting" );
 			while( state( "daemon_state" ) ne "stopping" ) {
+				state( "daemon_ping", time );
 				sleep 1;
 			}
 			state( "daemon_state", "stopped" );
