@@ -18,6 +18,7 @@ my $feedrate = 100;
 my $travelrate = 1000;
 my $active = 255;
 my $inactive = 1;
+my $json = undef;
 
 sub main {
 	my $file = undef;
@@ -34,6 +35,7 @@ sub main {
 		"active=i"         => \$active,
 		"inactive=i"       => \$inactive,
 		"debug|verbose|v+" => \$debuglevel,
+		"json"             => \$json,
 		"help"             => \$help,
 	);
 
@@ -67,11 +69,28 @@ sub main {
 	calculate_bounds( \@paths, \@bounds );
 	adjust_origin( \@paths, \@bounds );
 	calculate_bounds( \@paths, \@bounds );
-	print( STDERR "Drawing bounds: " );
-	print( STDERR "(".$bounds[0]->[0].",".$bounds[1]->[0].") -> " );
-	print( STDERR "(".$bounds[0]->[1].",".$bounds[1]->[1].")\n" );
-	#fill_paths( $svg, \@paths );
-	print( lines_to_gcode( \@paths ) );
+	if(defined($json)) {
+		my $lines = lines_to_gcode( \@paths, 1 );
+		print( encode_json( {
+			"bounds" => {
+				"min" => {
+					"x" => $bounds->[0]->[0],
+					"y" => $bounds->[1]->[0]
+				},
+				"max" => {
+					"x" => $bounds->[0]->[1],
+					"y" => $bounds->[1]->[1]
+				},
+			},
+			"gcode" => $lines
+		} ) );
+	} else {
+		print( STDERR "Drawing bounds: " );
+		print( STDERR "(".$bounds[0]->[0].",".$bounds[1]->[0].") -> " );
+		print( STDERR "(".$bounds[0]->[1].",".$bounds[1]->[1].")\n" );
+		#fill_paths( $svg, \@paths );
+		print( lines_to_gcode( \@paths ) );
+	}
 }
 
 sub adjust_origin {
@@ -192,13 +211,24 @@ sub max {
 
 sub lines_to_gcode {
 	my $paths = shift;
-	my $r = "";
-	for my $path (@$paths) {
-		for my $line (@{$path->{ "lines" }}) {
-			$r .= "G1 X".$line->{ "x" }." Y".$line->{ "y" }." E".$line->{ "e" }." F".$line->{ "f" }."\n";
+	my $json = shift;
+	if( $json ) {
+		my $lines[];
+		for my $path (@$paths) {
+			for my $line (@{$path->{ "lines" }}) {
+				push @$lines, "G1 X".$line->{ "x" }." Y".$line->{ "y" }." E".$line->{ "e" }." F".$line->{ "f" };
+			}
 		}
+		return $lines;
+	} else {
+		my $r;
+		for my $path (@$paths) {
+			for my $line (@{$path->{ "lines" }}) {
+				$r .= "G1 X".$line->{ "x" }." Y".$line->{ "y" }." E".$line->{ "e" }." F".$line->{ "f" }."\n";
+			}
+		}
+		return $r;
 	}
-	return $r;
 }
 
 # SVG standard is that the Y0 is the top, X0 is the left. That's OK for X, but Y
