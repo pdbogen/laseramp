@@ -74,12 +74,12 @@ sub main {
 		print( encode_json( {
 			"bounds" => {
 				"min" => {
-					"x" => $bounds->[0]->[0],
-					"y" => $bounds->[1]->[0]
+					"x" => $bounds[0]->[0],
+					"y" => $bounds[1]->[0]
 				},
 				"max" => {
-					"x" => $bounds->[0]->[1],
-					"y" => $bounds->[1]->[1]
+					"x" => $bounds[0]->[1],
+					"y" => $bounds[1]->[1]
 				},
 			},
 			"gcode" => $lines
@@ -213,7 +213,7 @@ sub lines_to_gcode {
 	my $paths = shift;
 	my $json = shift;
 	if( $json ) {
-		my $lines[];
+		my $lines = [];
 		for my $path (@$paths) {
 			for my $line (@{$path->{ "lines" }}) {
 				push @$lines, "G1 X".$line->{ "x" }." Y".$line->{ "y" }." E".$line->{ "e" }." F".$line->{ "f" };
