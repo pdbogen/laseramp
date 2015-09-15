@@ -212,8 +212,11 @@ sub flip_y_axis {
 	for my $path (@$paths) {
 		my $lines = $path->{ "lines" };
 		for( my $i = 0; $i < scalar @$lines; $i++ ) {
-			$lines->[ $i ]->{ "y" } = $svg->{ "height" }->{ "value" } / $dpmm - $lines->[ $i ]->{ "y" };
-			$lines->[ $i ]->{ "srcY" } = $svg->{ "height" }->{ "value" } / $dpmm - $lines->[ $i ]->{ "srcY" };
+			if( $svg->{ "height" }->{ "value" } =~ m/^([0-9.]+)/ ) {
+				my $h = $1;
+				$lines->[ $i ]->{ "y" } = $h / $dpmm - $lines->[ $i ]->{ "y" };
+				$lines->[ $i ]->{ "srcY" } = $h / $dpmm - $lines->[ $i ]->{ "srcY" };
+			}
 		}
 	}
 }
