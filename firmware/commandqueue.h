@@ -5,18 +5,18 @@
 
 class CommandQueue {
 public:
-	static CommandQueue * Instance();
-	Command * head, * tail;
+  static CommandQueue * Instance();
+  Command * head, * tail;
 
-	void enqueue( Command * c );
-	void push( Command * c );
-	Command * dequeue();
+  void enqueue( Command * c );
+  void push( Command * c );
+  Command * dequeue();
 
-	uint8_t count;
+  uint8_t count;
 
 private:
-	static CommandQueue * instance;
-	CommandQueue();
+  static CommandQueue * instance;
+  CommandQueue();
 };
 
 #endif
