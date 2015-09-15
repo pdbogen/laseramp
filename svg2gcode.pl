@@ -371,6 +371,7 @@ sub extract_lines_from_path {
 	my $index   = shift;
 	my $transforms = shift;
 
+	return 1 unless defined $svgPath->{ "d" } && defined $svgPath->{ "d" }->{ "value" };
 	return 1 if $svgPath->{ "d" }->{ "value" } eq "1";
 
 	my $lines = $path->{ "lines" };
