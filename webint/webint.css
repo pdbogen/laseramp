@@ -5,3 +5,23 @@ input.0to255 {
 table td {
 	vertical-align: top;
 }
+
+div.pane {
+	border: 1px solid black;
+	width: 30em;
+	float: left;
+	margin: 1em 1em 1em 1em;
+}
+
+div.pane div.divtitle {
+	background-color: #D0D0D0;
+	font-weight: bold;
+	margin-bottom: .1em;
+	padding-left: 1em;
+}
+
+div.progresslabel {
+	text-align: center;
+	margin-top: .5em;
+	font-size: 85%;
+}
