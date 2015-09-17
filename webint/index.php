@@ -5,44 +5,52 @@
 
 	$daemon_state = state( 'daemon_state' );
 
-	if( $_POST['cmd'] == 'begin_print' ) {
-		state( 'daemon_state', 'begin' );
-		exit;
-	}
-
-	if( $_POST[ 'cmd' ] == 'stopdaemon' ) {
-		state( 'daemon_state', 'stopping' );
-		exit;
-	}
-	if( $_POST[ 'cmd' ] == 'startdaemon' ) {
-		if( $daemon_state == 'stopped' ) {
-			state( 'daemon_state', 'starting' );
-			exec( '../daemon.pl >/tmp/daemon.log 2>&1 </dev/null &' );
+	if( array_key_exists( "cmd", $_POST ) ) {
+		if( $_POST['cmd'] == 'begin_print' ) {
+			state( 'daemon_state', 'begin' );
+			exit;
 		}
-		exit;
+
+		if( $_POST[ 'cmd' ] == 'stopdaemon' ) {
+			state( 'daemon_state', 'stopping' );
+			exit;
+		}
+		if( $_POST[ 'cmd' ] == 'startdaemon' ) {
+			if( $daemon_state == 'stopped' ) {
+				state( 'daemon_state', 'starting' );
+				exec( '../daemon.pl >/tmp/daemon.log 2>&1 </dev/null &' );
+			}
+			exit;
+		}
+
+		if( $_POST['cmd'] == 'cancel' ) {
+			state( 'daemon_state', 'cancel' );
+			header( 'Location: /' );
+			exit;
+		}
+
+		if( $_POST[ 'cmd' ] == 'print' ) {
+			cmd_print();
+		}
+
+		if( $_POST['cmd'] == 'set_serial_port') {
+			state( 'daemon_device', $_POST[ 'serial' ] );
+			header( 'Location: /' );
+			exit;
+		}
+
+		if( $_POST['cmd'] == 'setbaud' ) {
+			state( 'daemon_baud', intval( $_POST['val'] ) );
+			print( json_encode( Array( "error" => "" ) ) );
+			exit;
+		}
 	}
 
-	if( $_POST['cmd'] == 'cancel' ) {
-		state( 'daemon_state', 'cancel' );
-		header( 'Location: /' );
-		exit;
-	}
-
-	if( $_POST[ 'cmd' ] == 'print' ) {
-		cmd_print();
-	}
-
-	if( $_POST['cmd'] == 'set_serial_port') {
-		state( 'daemon_device', $_POST[ 'serial' ] );
-		header( 'Location: /' );
-		exit;
-	}
-
-	if( $_POST['cmd'] == 'setbaud' ) {
-		state( 'daemon_baud', intval( $_POST['val'] ) );
-		print( json_encode( Array( "error" => "" ) ) );
-		exit;
-	}
+if( array_key_exists( "message", $_SESSION ) ) {
+	$msg = $_SESSION[ "message" ];
+} else {
+	$msg = "";
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -53,7 +61,7 @@
 	<script src='https://code.jquery.com/ui/1.11.4/jquery-ui.min.js' type='text/javascript'></script>
 	<script src='webint.js' type='text/javascript'></script>
 	<script type='text/javascript'>
-		var phpmessage='<?=htmlentities( $_SESSION[ 'message' ] );?>';
+		var phpmessage='<?=$msg?>';
 		var state=<?php include_once( 'state.php' ); ?>;
 	</script>
 	<link rel='stylesheet' type='text/css' href='webint.css'>
