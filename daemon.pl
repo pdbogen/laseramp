@@ -208,11 +208,18 @@ sub parse_svg_file {
 	my $activepower = state( "current_activepower" );
 	my $inactivepower = state( "current_inactivepower" );
 	my $cmdline;
-	if( -x "svg2gcode.pl" ) {
-		$cmdline = "./svg2gcode.pl -f $file --dpmm $dpmm --feedrate $feedrate --travelrate $travelrate --active $activepower --inactive $inactivepower --json";
+	my $cmd;
+	if( -x "./svg2gcode.pl" ) {
+		$cmd="./svg2gcode.pl";
 	} elsif( -x "../svg2gcode.pl" ) {
-		$cmdline = "../svg2gcode.pl -f $file --dpmm $dpmm --feedrate $feedrate --travelrate $travelrate --active $activepower --inactive $inactivepower --json";
+		$cmd="../svg2gcode.pl";
+	} else {
+		$|++; print( "[E] Can't find svg2code.pl from ".$ENV{'PWD'}."\n" ); $|--;
+		state( "daemon_error", "cannot locate svg2gcode.pl" );
+		state( "daemon_state", "waiting" );
+		return;
 	}
+	$cmdline = "$cmd -f $file --dpmm $dpmm --feedrate $feedrate --travelrate $travelrate --active $activepower --inactive $inactivepower --json";
 	print( "[I] Executing $cmdline...\n" );
 	my $result = `$cmdline`;
 	my $oRes = decode_json( $result );
