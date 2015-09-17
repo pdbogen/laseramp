@@ -92,11 +92,22 @@ sub loop {
 		clean_sliced_file();
 		shutdown_serial();
 	} elsif( $state eq "begin" ) {
-		state( "daemon_state", "running" );
-		@gcode = @{ decode_json( state( "current_gcode" ) ) };
-		$gcode_index = 0;
-		setup_serial();
-		$state = "running";
+		my $gcf = state( "current_gcode" );
+		open my $fh, "<", $gcf;
+		if($@) {
+			state( "daemon_error", "Error while opening gcode file $gcf:" . $@ );
+			state( "daemon_state", "waiting" );
+			$state = "waiting";
+		} else {
+			my $gcode = "";
+			while(<$fh>) { $gcode .= $_; }
+			@gcode = @{ decode_json( $gcode ) };
+			close $fh;
+			state( "daemon_state", "running" );
+			$gcode_index = 0;
+			setup_serial();
+			$state = "running";
+		}
 	}
 
 	if( $state eq "running" ) {
@@ -231,9 +242,20 @@ sub parse_svg_file {
 		state( "current_min_y", $oRes->{ "bounds" }->{ "min" }->{ "y" } );
 		state( "current_max_x", $oRes->{ "bounds" }->{ "max" }->{ "x" } );
 		state( "current_max_y", $oRes->{ "bounds" }->{ "max" }->{ "y" } );
-		state( "current_gcode", encode_json( $oRes->{ "gcode" } ) );
-		state( "current_num_lines", scalar @{ $oRes->{ "gcode" } } );
-		state( "daemon_state", "ready" );
+		my $tmp = `mktemp`;
+		my $fh;
+		open $fh, ">", $tmp;
+		if($@) {
+			state( "daemon_error", "couldn't write gcode to temporary file $tmp: $@" );
+			state( "daemon_state", "waiting" );
+		} else {
+			print( $fh encode_json( $oRes->{ "gcode" } ) );
+			close $fh;
+			state( "current_gcode", $tmp );
+			state( "current_line", 0 );
+			state( "current_num_lines", scalar @{ $oRes->{ "gcode" } } );
+			state( "daemon_state", "ready" );
+		}
 	}
 	clear_state( "current_file" );       clear_state( "current_dpmm" );
 	clear_state( "current_feedrate");    clear_state( "current_travelrate" );
