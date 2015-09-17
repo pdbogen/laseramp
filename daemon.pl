@@ -152,7 +152,7 @@ sub run_print {
 
 	if( $serial_ready ) {
 		$serial_lastio = time;
-		print( "-> '$serial_buffer'\n" );
+		$|++; print( "-> '$serial_buffer'\n" ); $|--;
 		if( $serial_buffer =~ /^start$/i ) {
 			$serial_initialized = 1;
 			$serial_port->write( "G1 X0 Y0 F1000\n" );
