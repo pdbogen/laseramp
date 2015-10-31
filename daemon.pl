@@ -23,6 +23,7 @@ my $serial_port = undef;
 my $serial_lastio = time;
 my $serial_initialized = 0;
 my $serial_idle = 0;
+my $serial_init_time = 0;
 
 my @gcode;
 my $gcode_index;
@@ -90,6 +91,9 @@ sub loop {
 		parse_svg_file();
 	} elsif( $state eq "cancel" ) {
 		clean_sliced_file();
+		sleep(1);
+		$serial_port->pulse_dtr_on( 1000 );
+		sleep(1);
 		shutdown_serial();
 	} elsif( $state eq "begin" ) {
 		my $gcf = state( "current_gcode" );
@@ -150,12 +154,14 @@ sub setup_serial {
 	}
 
 	$serial_port->pulse_dtr_on( 1000 );
+	$serial_init_time = time;
 }
 
 sub run_print {
 	serial_in( $serial_port );
 	if( $serial_initialized && $serial_idle ) {
 		$serial_idle = 0;
+		$|++; print( "<- ".$gcode[ $gcode_index ]."\n" ); $|--;
 		$serial_port->write( $gcode[ $gcode_index ]."\n" );
 		$gcode_index++;
 		state( "current_line", $gcode_index );
@@ -166,7 +172,8 @@ sub run_print {
 		$|++; print( "-> '$serial_buffer'\n" ); $|--;
 		if( $serial_buffer =~ /^start$/i ) {
 			$serial_initialized = 1;
-			$serial_port->write( "G1 X0 Y0 F1000\n" );
+			$|++; print( "<- G1 X0 Y0 F500\n" ); $|--;
+			$serial_port->write( "G1 X0 Y0 F500\n" );
 		}
 		if( $serial_buffer =~ /^ok( |$)/i ||
 		    $serial_buffer =~ /^!!/ ) {
@@ -174,6 +181,11 @@ sub run_print {
 		}
 		$serial_buffer = "";
 		$serial_ready = 0;
+	}
+	if( $serial_initialized == 0 && $serial_init_time < time ) {
+		shutdown_serial();
+		sleep(1);
+		setup_serial();
 	}
 }
 
