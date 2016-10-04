@@ -50,10 +50,13 @@ struct Command {
     this->next = NULL;
   }
   uint8_t execute();
+  uint8_t execute_m();
 };
 
 void print_command( HardwareSerial s, Command * c );
 void parse_g_command( Command * c, char **buf_ptr, char *line );
+void parse_m_command( Command * c, char **buf_ptr, char *line );
 
+#define M_SET_LASER_POWER 104
 
 #endif

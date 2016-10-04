@@ -31,6 +31,9 @@ Command::Command( char *buf ) {
     case 'G':
       parse_g_command( this, &buf_ptr, buf );
       break;
+    case 'M':
+      parse_m_command( this, &buf_ptr, buf );
+      break;
     default:
       Serial.print( F("// warning: unknown command " ) );
       Serial.println( buf );
@@ -41,6 +44,33 @@ Command::Command( char *buf ) {
     Serial.print( F( "// Instantiated command from buffer: " ) );
     print_command( Serial, this );
   #endif
+}
+
+void parse_m_command( Command * c, char **buf_ptr, char *line ) {
+  c->cmd_class = 'M';
+  switch (get_int(buf_ptr)) {
+    case M_SET_LASER_POWER:
+      c->cmd_id = M_SET_LASER_POWER;
+      c->e = 0;
+      break;
+    default:
+      Serial.print( F("// warning: unknown command " ) );
+      Serial.println( line );
+      Serial.flush();
+      return;
+  }
+
+  while( **buf_ptr ) {
+    skip_whitespace( buf_ptr );
+    switch( **buf_ptr ) {
+      case 'S':
+        (*buf_ptr)++;
+        c->e = get_int(buf_ptr);
+        break;
+      default:
+        (*buf_ptr)++;
+    }
+  }
 }
 
 void parse_g_command( Command * c, char **buf_ptr, char *line ) {
@@ -117,8 +147,20 @@ void print_command( HardwareSerial s, Command * c ) {
   s.flush();
 }
 
+uint8_t Command::execute_m() {
+  switch (this->cmd_id) {
+    case M_SET_LASER_POWER:
+      power_setpoint = this->e;
+      break;
+  }
+  delete this;
+  return 1;
+}
+
 uint8_t Command::execute() {
   switch( this->cmd_class ) {
+    case 'M':
+      return this->execute_m();
     case 'G':
       switch( this->cmd_id ) {
         case 1:
