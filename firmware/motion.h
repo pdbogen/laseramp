@@ -23,4 +23,8 @@ void home();
 #define MS_HOMING_2 7
 #define MS_STOPPING 0xFF
 
+// Interval in ms between steps, so lower is faster; minimum 0.
+#define HOME_SPEED_PRIMARY 1
+#define HOME_SPEED_SECONDARY 10
+
 #endif

@@ -63,14 +63,14 @@ void motion_control_home_primary() {
   }
 
   if( x != X_STOP_ENGAGED ) {
-    if( ms_since_step[0] > 0 ) {
+    if( ms_since_step[0] > HOME_SPEED_PRIMARY ) {
       enable_motors();
       digitalWrite( X_STEP_PIN, !digitalRead( X_STEP_PIN ) );
       ms_since_step[0] = 0;
     }
   }
   if( y != Y_STOP_ENGAGED ) {
-    if( ms_since_step[1] > 0 ) {
+    if( ms_since_step[1] > HOME_SPEED_PRIMARY ) {
       enable_motors();
       digitalWrite( Y_STEP_PIN, !digitalRead( Y_STEP_PIN ) );
       ms_since_step[1] = 0;
@@ -93,14 +93,14 @@ void motion_control_home_secondary() {
   }
 
   if( x == X_STOP_ENGAGED ) {
-    if( ms_since_step[0] > 10 ) {
+    if( ms_since_step[0] > HOME_SPEED_SECONDARY ) {
       enable_motors();
       digitalWrite( X_STEP_PIN, !digitalRead( X_STEP_PIN ) );
       ms_since_step[0] = 0;
     }
   }
   if( y == Y_STOP_ENGAGED ) {
-    if( ms_since_step[1] > 10 ) {
+    if( ms_since_step[1] > HOME_SPEED_SECONDARY ) {
       enable_motors();
       digitalWrite( Y_STEP_PIN, !digitalRead( Y_STEP_PIN ) );
       ms_since_step[1] = 0;
