@@ -1,0 +1,3 @@
+[submodule "firmware/arduino-mk"]
+	path = firmware/arduino-mk
+	url = https://github.com/sudar/Arduino-Makefile.git
